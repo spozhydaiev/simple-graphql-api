@@ -1,6 +1,8 @@
 package gql
 
-import "github.com/graphql-go/graphql"
+import (
+	"github.com/graphql-go/graphql"
+)
 
 var ArtistType = graphql.NewObject(
 	graphql.ObjectConfig{
@@ -13,7 +15,7 @@ var ArtistType = graphql.NewObject(
 				Type: graphql.String,
 			},
 			"artworks": &graphql.Field{
-				Type: graphql.NewList(graphql.Int),
+				Type: graphql.NewList(ArtworkType),
 			},
 		},
 	},
@@ -30,7 +32,7 @@ var ArtworkType = graphql.NewObject(
 				Type: graphql.String,
 			},
 			"artist": &graphql.Field{
-				Type: ArtistType,
+				Type: graphql.Int,
 			},
 		},
 	},

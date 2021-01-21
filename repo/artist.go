@@ -9,7 +9,8 @@ type ArtistRepo interface {
 	Create(artist *models.Artist) error
 	Update(artist *models.Artist) error
 	Delete(artist *models.Artist) error
-	GetArtist() ([]*models.Artist, error)
+	GetArtistList(searchString string) ([]*models.Artist, error)
+	GetArtistByName(name string) (*models.Artist, error)
 }
 
 type artistRepo struct {
@@ -31,7 +32,7 @@ func (repo *artistRepo) Create(artist *models.Artist) error {
 }
 
 func (repo *artistRepo) Update(artist *models.Artist) error {
-	err := repo.db.Where("id =", artist.ID).Updates(artist).Error
+	err := repo.db.Model(&models.Artist{}).Where("id", artist.ID).Update("name", artist.Name).Error
 	if err != nil {
 		return err
 	}
@@ -39,17 +40,34 @@ func (repo *artistRepo) Update(artist *models.Artist) error {
 }
 
 func (repo *artistRepo) Delete(artist *models.Artist) error {
-	err := repo.db.Where("id =", artist.ID).Delete(artist).Error
+	err := repo.db.Model(&models.Artist{}).Where("id", artist.ID).Delete(artist).Error
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (repo *artistRepo) GetArtist() ([]*models.Artist, error) {
+func (repo *artistRepo) GetArtistList(searchString string) ([]*models.Artist, error) {
 	var result []*models.Artist
 
-	err := repo.db.Find(&result).Error
+	chain := repo.db.Model(&models.Artist{})
+
+	if searchString != "" {
+		chain = chain.Where("LOWER(name) LIKE LOWER(?)", "%"+searchString+"%")
+	}
+
+	err := chain.Preload("Artworks").Find(&result).Error
+	if err != nil {
+		return nil, err
+	}
+
+	return result, nil
+}
+
+func (repo *artistRepo) GetArtistByName(name string) (*models.Artist, error) {
+	var result *models.Artist
+
+	err := repo.db.Model(&models.Artist{}).Where("name", name).Preload("Artworks").Find(&result).Error
 	if err != nil {
 		return nil, err
 	}

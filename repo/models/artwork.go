@@ -1,9 +1,17 @@
 package models
 
-import "gorm.io/gorm"
+import (
+	"time"
+
+	"gorm.io/gorm"
+)
 
 type Artwork struct {
-	gorm.Model
+	ID        uint `gorm:"primarykey" json:"id"`
+	CreatedAt time.Time
+	UpdatedAt time.Time
+	DeletedAt gorm.DeletedAt `gorm:"index"`
+
 	Title    string `json:"title"`
 	ArtistID uint   `json:"artist"`
 }

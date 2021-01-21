@@ -1,16 +1,15 @@
 package repo
 
 import (
-	"context"
-
 	"github.com/SergioBravo/simple-graphql-api/repo/models"
 	"gorm.io/gorm"
 )
 
 type ArtworkRepo interface {
-	Create(ctx context.Context, artwork *models.Artwork) error
-	Update(ctx context.Context, artwork *models.Artwork) error
-	Delete(ctx context.Context, artwork *models.Artwork) error
+	Create(artwork *models.Artwork) error
+	Update(artwork *models.Artwork) error
+	Delete(artwork *models.Artwork) error
+	GetArtworks(artistID int) ([]*models.Artwork, error)
 }
 
 type artworkRepo struct {
@@ -23,7 +22,7 @@ func NewArtworkRepo(db *gorm.DB) ArtworkRepo {
 	}
 }
 
-func (repo *artworkRepo) Create(ctx context.Context, artwork *models.Artwork) error {
+func (repo *artworkRepo) Create(artwork *models.Artwork) error {
 	err := repo.db.Model(models.Artwork{}).Create(artwork).Error
 	if err != nil {
 		return err
@@ -31,18 +30,29 @@ func (repo *artworkRepo) Create(ctx context.Context, artwork *models.Artwork) er
 	return nil
 }
 
-func (repo *artworkRepo) Update(ctx context.Context, artwork *models.Artwork) error {
-	err := repo.db.Model(models.Artwork{}).Updates(artwork).Error
+func (repo *artworkRepo) Update(artwork *models.Artwork) error {
+	err := repo.db.Model(&models.Artwork{}).Where("id", artwork.ID).Updates(artwork).Error
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (repo *artworkRepo) Delete(ctx context.Context, artwork *models.Artwork) error {
-	err := repo.db.Model(models.Artwork{}).Delete(artwork).Error
+func (repo *artworkRepo) Delete(artwork *models.Artwork) error {
+	err := repo.db.Model(&models.Artwork{}).Where("id", artwork.ID).Delete(artwork).Error
 	if err != nil {
 		return err
 	}
 	return nil
+}
+
+func (repo *artworkRepo) GetArtworks(artistID int) ([]*models.Artwork, error) {
+	var result []*models.Artwork
+
+	err := repo.db.Model(&models.Artwork{}).Where("artist_id", artistID).Find(&result).Error
+	if err != nil {
+		return nil, err
+	}
+
+	return result, nil
 }
